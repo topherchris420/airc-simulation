@@ -1,0 +1,1055 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AIRC System Simulation</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #0f1419 0%, #1a2332 100%);
+            color: #e8eaed;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        h1 {
+            text-align: center;
+            color: #4fc3f7;
+            margin-bottom: 30px;
+            text-shadow: 0 0 10px rgba(79, 195, 247, 0.3);
+        }
+        
+        .control-panel {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 30px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .button-group {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        
+        button {
+            background: linear-gradient(45deg, #2196f3, #21cbf3);
+            border: none;
+            padding: 12px 24px;
+            border-radius: 25px;
+            color: white;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(33, 150, 243, 0.3);
+        }
+        
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(33, 150, 243, 0.4);
+        }
+        
+        button:disabled {
+            background: #555;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+        
+        .status-panel {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .status-item {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 15px;
+            border-radius: 10px;
+            border-left: 4px solid #4fc3f7;
+        }
+        
+        .status-label {
+            font-size: 12px;
+            color: #aaa;
+            margin-bottom: 5px;
+        }
+        
+        .status-value {
+            font-size: 18px;
+            font-weight: bold;
+            color: #4fc3f7;
+        }
+        
+        .visualization-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+        
+        .viz-container {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 15px;
+            padding: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .viz-title {
+            color: #4fc3f7;
+            margin-bottom: 15px;
+            font-weight: bold;
+            text-align: center;
+        }
+        
+        canvas {
+            width: 100%;
+            height: 300px;
+            border-radius: 10px;
+            background: rgba(0, 0, 0, 0.2);
+        }
+        
+        .full-width {
+            grid-column: 1 / -1;
+        }
+        
+        .resonance-panel {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 15px;
+            padding: 20px;
+            margin-top: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .resonance-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 10px;
+            margin-top: 15px;
+        }
+        
+        .resonance-order {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 10px;
+            border-radius: 8px;
+            text-align: center;
+            border: 2px solid transparent;
+            transition: all 0.3s ease;
+        }
+        
+        .resonance-order.active {
+            border-color: #4fc3f7;
+            background: rgba(79, 195, 247, 0.2);
+        }
+        
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+            overflow: hidden;
+            margin: 10px 0;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #4fc3f7, #29b6f6);
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+        
+        .log-panel {
+            background: rgba(0, 0, 0, 0.4);
+            border-radius: 10px;
+            padding: 15px;
+            margin-top: 20px;
+            max-height: 200px;
+            overflow-y: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .log-entry {
+            margin-bottom: 5px;
+            padding: 2px 5px;
+            border-radius: 3px;
+        }
+        
+        .log-info { color: #4fc3f7; }
+        .log-warning { color: #ffa726; background: rgba(255, 167, 38, 0.1); }
+        .log-error { color: #ef5350; background: rgba(239, 83, 80, 0.1); }
+        .log-success { color: #66bb6a; background: rgba(102, 187, 106, 0.1); }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Adaptive Ionospheric Resonance Control (AIRC) System</h1>
+        
+        <div class="control-panel">
+            <div class="button-group">
+                <button id="startBtn">Start Simulation</button>
+                <button id="pauseBtn" disabled>Pause</button>
+                <button id="resetBtn">Reset</button>
+                <button id="exportBtn" disabled>Export Data</button>
+            </div>
+            
+            <div class="status-panel">
+                <div class="status-item">
+                    <div class="status-label">Simulation Time</div>
+                    <div class="status-value" id="simTime">0.00 min</div>
+                </div>
+                <div class="status-item">
+                    <div class="status-label">Coherence Index J</div>
+                    <div class="status-value" id="coherenceIndex">0.000</div>
+                </div>
+                <div class="status-item">
+                    <div class="status-label">Control Vector |u|</div>
+                    <div class="status-value" id="controlMagnitude">0.000</div>
+                </div>
+                <div class="status-item">
+                    <div class="status-label">TID Status</div>
+                    <div class="status-value" id="tidStatus">Inactive</div>
+                </div>
+                <div class="status-item">
+                    <div class="status-label">AIRC Status</div>
+                    <div class="status-value" id="aircStatus">Standby</div>
+                </div>
+                <div class="status-item">
+                    <div class="status-label">Gradient Norm</div>
+                    <div class="status-value" id="gradientNorm">0.000</div>
+                </div>
+            </div>
+            
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressFill"></div>
+            </div>
+        </div>
+        
+        <div class="visualization-grid">
+            <div class="viz-container">
+                <h3 class="viz-title">Electron Density Distribution (×10¹¹ m⁻³)</h3>
+                <canvas id="densityCanvas"></canvas>
+            </div>
+            
+            <div class="viz-container">
+                <h3 class="viz-title">Coherence Index J Spatial Map</h3>
+                <canvas id="coherenceCanvas"></canvas>
+            </div>
+            
+            <div class="viz-container">
+                <h3 class="viz-title">Control Vector Field |u(x,y)|</h3>
+                <canvas id="controlCanvas"></canvas>
+            </div>
+            
+            <div class="viz-container">
+                <h3 class="viz-title">Gradient Ascent Convergence</h3>
+                <canvas id="convergenceCanvas"></canvas>
+            </div>
+        </div>
+        
+        <div class="resonance-panel">
+            <h3 class="viz-title">Dynamic Resonance Rooting - Cyclotron Harmonics</h3>
+            <div class="resonance-grid" id="resonanceGrid">
+                </div>
+        </div>
+        
+        <div class="viz-container full-width">
+            <h3 class="viz-title">Real-time System Metrics</h3>
+            <canvas id="metricsCanvas"></canvas>
+        </div>
+        
+        <div class="log-panel" id="logPanel">
+            <div class="log-entry log-info">[SYSTEM] AIRC System initialized - IRI baseline conditions loaded</div>
+            <div class="log-entry log-info">[CONTROL] Gradient ascent algorithm ready</div>
+            <div class="log-entry log-info">[RESONANCE] Dynamic resonance rooting system online</div>
+        </div>
+    </div>
+
+    <script>
+        class AIRCSimulation {
+            constructor() {
+                this.isRunning = false;
+                this.isPaused = false;
+                this.currentTime = 0;
+                this.maxTime = 20; // 20 minutes
+                this.dt = 0.1; // 0.1 minute time step
+                
+                // Grid parameters
+                this.gridSize = 64;
+                this.spatialExtent = 500; // km
+                
+                // Initialize state variables
+                this.initializeState();
+                
+                // Get canvas contexts
+                this.setupCanvases();
+                
+                // Initialize UI
+                this.setupEventListeners();
+                this.setupResonanceGrid();
+                
+                // Start animation loop
+                this.animate();
+            }
+            
+            initializeState() {
+                // IRI baseline conditions (mid-latitude, daytime)
+                this.baselineDensity = 2.5e11; // m^-3
+                this.electronDensity = this.createBaselineField();
+                
+                // Coherence index and control vectors
+                this.coherenceIndex = this.createField(0.5);
+                this.controlVector = this.createVectorField();
+                this.gradientField = this.createVectorField();
+                
+                // AIRC algorithm parameters
+                this.learningRate = 0.01;
+                this.dithering = 0.001;
+                this.convergenceHistory = [];
+                this.metricsHistory = [];
+                
+                // TID parameters
+                this.tidIntroduced = false;
+                this.tidAmplitude = 0.3;
+                this.tidWavelength = 200; // km
+                this.tidSpeed = 150; // m/s
+                
+                // Resonance orders and cyclotron harmonics
+                this.resonanceOrders = [1, 2, 3, 4, 5, 6, 8, 10];
+                this.cyclotronHarmonics = new Map();
+                this.activeResonances = new Set();
+                
+                this.initializeResonanceMapping();
+            }
+            
+            createBaselineField() {
+                const field = [];
+                for (let i = 0; i < this.gridSize; i++) {
+                    field[i] = [];
+                    for (let j = 0; j < this.gridSize; j++) {
+                        // IRI model approximation with Chapman layer
+                        const x = (i / this.gridSize - 0.5) * this.spatialExtent;
+                        const y = (j / this.gridSize - 0.5) * this.spatialExtent;
+                        const r = Math.sqrt(x*x + y*y);
+                        const height_factor = Math.exp(-r*r / (100*100));
+                        field[i][j] = this.baselineDensity * (0.8 + 0.4 * height_factor);
+                    }
+                }
+                return field;
+            }
+            
+            createField(value) {
+                const field = [];
+                for (let i = 0; i < this.gridSize; i++) {
+                    field[i] = [];
+                    for (let j = 0; j < this.gridSize; j++) {
+                        field[i][j] = value + 0.1 * (Math.random() - 0.5);
+                    }
+                }
+                return field;
+            }
+            
+            createVectorField() {
+                const field = [];
+                for (let i = 0; i < this.gridSize; i++) {
+                    field[i] = [];
+                    for (let j = 0; j < this.gridSize; j++) {
+                        field[i][j] = {
+                            x: 0.01 * (Math.random() - 0.5),
+                            y: 0.01 * (Math.random() - 0.5),
+                            magnitude: 0
+                        };
+                        field[i][j].magnitude = Math.sqrt(
+                            field[i][j].x**2 + field[i][j].y**2
+                        );
+                    }
+                }
+                return field;
+            }
+            
+            initializeResonanceMapping() {
+                // Map resonance orders to cyclotron harmonics
+                const baseFreq = 1.4e6; // Hz, typical HF heating frequency
+                const cyclotronFreq = 1.76e7; // Hz, electron cyclotron frequency
+                
+                this.resonanceOrders.forEach(order => {
+                    const harmonic = Math.round(baseFreq * order / cyclotronFreq * 100) / 100;
+                    this.cyclotronHarmonics.set(order, {
+                        harmonic: harmonic,
+                        amplitude: 0,
+                        phase: 0,
+                        active: false
+                    });
+                });
+            }
+            
+            setupCanvases() {
+                this.canvases = {
+                    density: document.getElementById('densityCanvas'),
+                    coherence: document.getElementById('coherenceCanvas'),
+                    control: document.getElementById('controlCanvas'),
+                    convergence: document.getElementById('convergenceCanvas'),
+                    metrics: document.getElementById('metricsCanvas')
+                };
+                
+                this.contexts = {};
+                Object.keys(this.canvases).forEach(key => {
+                    const canvas = this.canvases[key];
+                    // Use devicePixelRatio for sharper rendering on HiDPI displays
+                    const dpr = window.devicePixelRatio || 1;
+                    canvas.width = canvas.offsetWidth * dpr;
+                    canvas.height = canvas.offsetHeight * dpr;
+                    this.contexts[key] = canvas.getContext('2d');
+                    this.contexts[key].scale(dpr, dpr);
+                });
+            }
+            
+            setupEventListeners() {
+                document.getElementById('startBtn').onclick = () => this.start();
+                document.getElementById('pauseBtn').onclick = () => this.pause();
+                document.getElementById('resetBtn').onclick = () => this.reset();
+                document.getElementById('exportBtn').onclick = () => this.exportData();
+            }
+            
+            setupResonanceGrid() {
+                const grid = document.getElementById('resonanceGrid');
+                grid.innerHTML = '';
+                
+                this.resonanceOrders.forEach(order => {
+                    const div = document.createElement('div');
+                    div.className = 'resonance-order';
+                    div.id = `resonance-${order}`;
+                    
+                    const harmonic = this.cyclotronHarmonics.get(order);
+                    div.innerHTML = `
+                        <div style="font-weight: bold;">Order ${order}</div>
+                        <div style="font-size: 12px; margin: 5px 0;">
+                            Harmonic: ${harmonic.harmonic.toFixed(2)}
+                        </div>
+                        <div style="font-size: 11px; color: #aaa;">
+                            Amp: <span id="amp-${order}">0.00</span>
+                        </div>
+                    `;
+                    
+                    grid.appendChild(div);
+                });
+            }
+            
+            start() {
+                this.isRunning = true;
+                this.isPaused = false;
+                
+                document.getElementById('startBtn').disabled = true;
+                document.getElementById('pauseBtn').disabled = false;
+                document.getElementById('exportBtn').disabled = false;
+                document.getElementById('aircStatus').textContent = 'Active';
+                
+                this.addLog('AIRC system activated - Beginning gradient ascent optimization', 'success');
+            }
+            
+            pause() {
+                this.isPaused = !this.isPaused;
+                const btn = document.getElementById('pauseBtn');
+                btn.textContent = this.isPaused ? 'Resume' : 'Pause';
+                
+                this.addLog(this.isPaused ? 'Simulation paused' : 'Simulation resumed', 'info');
+            }
+            
+            reset() {
+                this.isRunning = false;
+                this.isPaused = false;
+                this.currentTime = 0;
+                this.tidIntroduced = false;
+                
+                this.initializeState();
+                
+                document.getElementById('startBtn').disabled = false;
+                document.getElementById('pauseBtn').disabled = true;
+                document.getElementById('pauseBtn').textContent = 'Pause';
+                document.getElementById('exportBtn').disabled = true;
+                document.getElementById('aircStatus').textContent = 'Standby';
+                document.getElementById('tidStatus').textContent = 'Inactive';
+                
+                this.updateUI();
+                this.addLog('System reset to initial conditions', 'info');
+            }
+            
+            update() {
+                if (!this.isRunning || this.isPaused) return;
+                
+                this.currentTime += this.dt;
+                
+                // Introduce TID at t = 5 minutes (changed from 10 for earlier effect)
+                if (this.currentTime >= 5.0 && !this.tidIntroduced) {
+                    this.introduceTID();
+                }
+                
+                // Update system dynamics
+                this.updateElectronDensity();
+                this.updateCoherenceIndex();
+                this.performGradientAscent();
+                this.updateResonanceMapping();
+                
+                // Record metrics
+                this.recordMetrics();
+                
+                // Check completion
+                if (this.currentTime >= this.maxTime) {
+                    this.complete();
+                }
+            }
+            
+            introduceTID() {
+                this.tidIntroduced = true;
+                document.getElementById('tidStatus').textContent = 'Active';
+                this.addLog('Traveling Ionospheric Disturbance (TID) introduced', 'warning');
+            }
+            
+            updateElectronDensity() {
+                // Apply control vector effects and natural evolution
+                const nextDensity = this.createField(0);
+
+                for (let i = 1; i < this.gridSize - 1; i++) {
+                    for (let j = 1; j < this.gridSize - 1; j++) {
+                        const controlEffect = this.controlVector[i][j].magnitude * 0.1;
+                        const diffusion = 0.01 * (
+                            this.electronDensity[i+1][j] + this.electronDensity[i-1][j] +
+                            this.electronDensity[i][j+1] + this.electronDensity[i][j-1] -
+                            4 * this.electronDensity[i][j]
+                        );
+                        
+                        nextDensity[i][j] = this.electronDensity[i][j] + this.dt * (controlEffect + diffusion);
+                    }
+                }
+                this.electronDensity = nextDensity;
+
+                // Apply TID evolution if active
+                if (this.tidIntroduced) {
+                    this.evolveTID();
+                }
+            }
+            
+            evolveTID() {
+                // FIXED: Use an additive model based on the baseline density to avoid unstable feedback loops.
+                for (let i = 0; i < this.gridSize; i++) {
+                    for (let j = 0; j < this.gridSize; j++) {
+                        const x = (i / this.gridSize - 0.5) * this.spatialExtent;
+                        const y = (j / this.gridSize - 0.5) * this.spatialExtent;
+                        
+                        const tidPhase = 2 * Math.PI * (x - this.tidSpeed * this.currentTime * 60) / this.tidWavelength;
+                        const tidPerturbation = this.tidAmplitude * Math.sin(tidPhase) * Math.exp(-Math.abs(y) / 100) * Math.exp(-(this.currentTime - 5) / 10); // Slower decay
+                        
+                        // Add the perturbation relative to the baseline, scaled by dt
+                        this.electronDensity[i][j] += this.baselineDensity * tidPerturbation * this.dt;
+                    }
+                }
+            }
+            
+            updateCoherenceIndex() {
+                // Calculate coherence index based on electron density uniformity
+                for (let i = 1; i < this.gridSize - 1; i++) {
+                    for (let j = 1; j < this.gridSize - 1; j++) {
+                        const neighbors = [
+                            this.electronDensity[i+1][j], this.electronDensity[i-1][j],
+                            this.electronDensity[i][j+1], this.electronDensity[i][j-1]
+                        ];
+                        
+                        const mean = neighbors.reduce((a, b) => a + b, 0) / neighbors.length;
+                        const variance = neighbors.reduce((a, b) => a + (b - mean)**2, 0) / neighbors.length;
+                        
+                        this.coherenceIndex[i][j] = Math.exp(-variance / (mean**2 + 1e-10));
+                    }
+                }
+            }
+
+            performGradientAscent() {
+                this.estimateGradient();
+                
+                let totalGradient = 0;
+                for (let i = 0; i < this.gridSize; i++) {
+                    for (let j = 0; j < this.gridSize; j++) {
+                        this.controlVector[i][j].x += this.learningRate * this.gradientField[i][j].x;
+                        this.controlVector[i][j].y += this.learningRate * this.gradientField[i][j].y;
+                        
+                        this.controlVector[i][j].magnitude = Math.sqrt(
+                            this.controlVector[i][j].x**2 + this.controlVector[i][j].y**2
+                        );
+                        
+                        totalGradient += this.gradientField[i][j].x**2 + this.gradientField[i][j].y**2;
+                    }
+                }
+                
+                this.gradientNorm = Math.sqrt(totalGradient);
+                
+                const avgCoherence = this.getAverageCoherence();
+                this.convergenceHistory.push({
+                    time: this.currentTime,
+                    coherence: avgCoherence,
+                    gradient: this.gradientNorm
+                });
+            }
+            
+            // FIXED: Replaced the non-functional gradient estimation.
+            estimateGradient() {
+                const tempGradientField = this.createVectorField();
+
+                for (let i = 1; i < this.gridSize - 1; i++) {
+                    for (let j = 1; j < this.gridSize - 1; j++) {
+                        const originalU = { ...this.controlVector[i][j] };
+
+                        // X-direction
+                        let ditheredU = { ...originalU, x: originalU.x + this.dithering };
+                        let Jplus = this._getHypotheticalLocalCoherence(i, j, ditheredU);
+                        
+                        ditheredU = { ...originalU, x: originalU.x - this.dithering };
+                        let Jminus = this._getHypotheticalLocalCoherence(i, j, ditheredU);
+                        
+                        tempGradientField[i][j].x = (Jplus - Jminus) / (2 * this.dithering);
+
+                        // Y-direction
+                        ditheredU = { ...originalU, y: originalU.y + this.dithering };
+                        Jplus = this._getHypotheticalLocalCoherence(i, j, ditheredU);
+
+                        ditheredU = { ...originalU, y: originalU.y - this.dithering };
+                        Jminus = this._getHypotheticalLocalCoherence(i, j, ditheredU);
+
+                        tempGradientField[i][j].y = (Jplus - Jminus) / (2 * this.dithering);
+                    }
+                }
+                this.gradientField = tempGradientField;
+            }
+
+            // FIXED: New helper function to correctly calculate the result of a perturbation.
+            _getHypotheticalLocalCoherence(i, j, perturbedU) {
+                // This function calculates the resulting local coherence index J
+                // from a hypothetical perturbation of the control vector u at a single point (i,j).
+                // It uses a simplified local model for performance.
+
+                perturbedU.magnitude = Math.sqrt(perturbedU.x**2 + perturbedU.y**2);
+
+                // Step 1: Calculate the hypothetical density at (i,j) in the next time step.
+                const controlEffect = perturbedU.magnitude * 0.1;
+                const diffusion = 0.01 * (
+                    this.electronDensity[i+1][j] + this.electronDensity[i-1][j] +
+                    this.electronDensity[i][j+1] + this.electronDensity[i][j-1] -
+                    4 * this.electronDensity[i][j]
+                );
+                const hypotheticalDensity_ij = this.electronDensity[i][j] + this.dt * (controlEffect + diffusion);
+
+                // Step 2: The change in density at (i,j) affects the coherence calculation of its neighbors.
+                // We sum the coherence changes in the local 3x3 region.
+                let totalCoherence = 0;
+                for (let di = -1; di <= 1; di++) {
+                    for (let dj = -1; dj <= 1; dj++) {
+                        const ni = i + di;
+                        const nj = j + dj;
+
+                        // Get neighbors of the point (ni, nj)
+                        const neighborsOfN = [
+                            // If a neighbor is (i,j), use the hypothetical density.
+                            (ni + 1 === i && nj === j) ? hypotheticalDensity_ij : this.electronDensity[ni + 1][nj],
+                            (ni - 1 === i && nj === j) ? hypotheticalDensity_ij : this.electronDensity[ni - 1][nj],
+                            (ni === i && nj + 1 === j) ? hypotheticalDensity_ij : this.electronDensity[ni][nj + 1],
+                            (ni === i && nj - 1 === j) ? hypotheticalDensity_ij : this.electronDensity[ni][nj - 1],
+                        ];
+                        
+                        const mean = neighborsOfN.reduce((a, b) => a + b, 0) / neighborsOfN.length;
+                        const variance = neighborsOfN.reduce((a, b) => a + (b - mean)**2, 0) / neighborsOfN.length;
+                        totalCoherence += Math.exp(-variance / (mean**2 + 1e-10));
+                    }
+                }
+                return totalCoherence / 9.0;
+            }
+            
+            updateResonanceMapping() {
+                // Update resonance orders based on current system state
+                const avgDensity = this.getAverageDensity();
+                const avgCoherence = this.getAverageCoherence();
+                const avgControl = this.getAverageControlMagnitude();
+                
+                this.resonanceOrders.forEach(order => {
+                    const harmonic = this.cyclotronHarmonics.get(order);
+                    
+                    // Calculate resonance amplitude based on system state
+                    const resonanceCondition = Math.abs(avgDensity / this.baselineDensity - order / 5);
+                    harmonic.amplitude = Math.exp(-resonanceCondition * 2) * avgCoherence * avgControl * 10;
+                    
+                    // Update phase
+                    harmonic.phase += 0.1 * order * this.dt;
+                    
+                    // Determine if resonance is active
+                    harmonic.active = harmonic.amplitude > 0.1;
+                    
+                    if (harmonic.active) {
+                        this.activeResonances.add(order);
+                    } else {
+                        this.activeResonances.delete(order);
+                    }
+                    
+                    this.cyclotronHarmonics.set(order, harmonic);
+                });
+            }
+            
+            recordMetrics() {
+                this.metricsHistory.push({
+                    time: this.currentTime,
+                    avgDensity: this.getAverageDensity(),
+                    avgCoherence: this.getAverageCoherence(),
+                    avgControl: this.getAverageControlMagnitude(),
+                    gradientNorm: this.gradientNorm,
+                    activeResonances: this.activeResonances.size
+                });
+                
+                // Keep only last 200 points for performance
+                if (this.metricsHistory.length > 200) {
+                    this.metricsHistory.shift();
+                }
+            }
+            
+            getAverageDensity() {
+                let sum = 0;
+                for (let i = 0; i < this.gridSize; i++) {
+                    for (let j = 0; j < this.gridSize; j++) {
+                        sum += this.electronDensity[i][j];
+                    }
+                }
+                return sum / (this.gridSize * this.gridSize);
+            }
+            
+            getAverageCoherence() {
+                let sum = 0;
+                for (let i = 0; i < this.gridSize; i++) {
+                    for (let j = 0; j < this.gridSize; j++) {
+                        sum += this.coherenceIndex[i][j];
+                    }
+                }
+                return sum / (this.gridSize * this.gridSize);
+            }
+            
+            getAverageControlMagnitude() {
+                let sum = 0;
+                for (let i = 0; i < this.gridSize; i++) {
+                    for (let j = 0; j < this.gridSize; j++) {
+                        sum += this.controlVector[i][j].magnitude;
+                    }
+                }
+                return sum / (this.gridSize * this.gridSize);
+            }
+            
+            complete() {
+                this.isRunning = false;
+                document.getElementById('startBtn').disabled = false;
+                document.getElementById('pauseBtn').disabled = true;
+                document.getElementById('aircStatus').textContent = 'Complete';
+                
+                this.addLog('Simulation completed - 20 minutes elapsed', 'success');
+                this.addLog(`Final coherence index: ${this.getAverageCoherence().toFixed(4)}`, 'success');
+                this.addLog(`Active resonances: ${this.activeResonances.size}/${this.resonanceOrders.length}`, 'success');
+            }
+            
+            updateUI() {
+                document.getElementById('simTime').textContent = `${this.currentTime.toFixed(2)} min`;
+                document.getElementById('coherenceIndex').textContent = this.getAverageCoherence().toFixed(3);
+                document.getElementById('controlMagnitude').textContent = this.getAverageControlMagnitude().toFixed(3);
+                document.getElementById('gradientNorm').textContent = this.gradientNorm.toExponential(2);
+                
+                const progress = (this.currentTime / this.maxTime) * 100;
+                document.getElementById('progressFill').style.width = `${progress}%`;
+                
+                this.updateResonanceDisplay();
+                
+                this.renderDensityMap();
+                this.renderCoherenceMap();
+                this.renderControlField();
+                this.renderConvergence();
+                this.renderMetrics();
+            }
+            
+            updateResonanceDisplay() {
+                this.resonanceOrders.forEach(order => {
+                    const element = document.getElementById(`resonance-${order}`);
+                    const ampElement = document.getElementById(`amp-${order}`);
+                    const harmonic = this.cyclotronHarmonics.get(order);
+                    
+                    if (harmonic.active) {
+                        element.classList.add('active');
+                    } else {
+                        element.classList.remove('active');
+                    }
+                    
+                    ampElement.textContent = harmonic.amplitude.toFixed(2);
+                });
+            }
+            
+            renderDensityMap() {
+                const ctx = this.contexts.density;
+                const canvas = this.canvases.density;
+                const width = canvas.offsetWidth;
+                const height = canvas.offsetHeight;
+                
+                ctx.clearRect(0, 0, width, height);
+                
+                let minDensity = Infinity, maxDensity = -Infinity;
+                for (let i = 0; i < this.gridSize; i++) {
+                    for (let j = 0; j < this.gridSize; j++) {
+                        minDensity = Math.min(minDensity, this.electronDensity[i][j]);
+                        maxDensity = Math.max(maxDensity, this.electronDensity[i][j]);
+                    }
+                }
+                
+                const cellWidth = width / this.gridSize;
+                const cellHeight = height / this.gridSize;
+                
+                for (let i = 0; i < this.gridSize; i++) {
+                    for (let j = 0; j < this.gridSize; j++) {
+                        const density = this.electronDensity[i][j];
+                        const normalized = (density - minDensity) / (maxDensity - minDensity + 1e-10);
+                        
+                        const hue = 240 * (1 - normalized); // 240 (blue) to 0 (red)
+                        ctx.fillStyle = `hsl(${hue}, 100%, 50%)`;
+                        ctx.fillRect(i * cellWidth, j * cellHeight, cellWidth, cellHeight);
+                    }
+                }
+            }
+            
+            renderCoherenceMap() {
+                const ctx = this.contexts.coherence;
+                const canvas = this.canvases.coherence;
+                const width = canvas.offsetWidth;
+                const height = canvas.offsetHeight;
+                
+                ctx.clearRect(0, 0, width, height);
+                
+                const cellWidth = width / this.gridSize;
+                const cellHeight = height / this.gridSize;
+                
+                for (let i = 0; i < this.gridSize; i++) {
+                    for (let j = 0; j < this.gridSize; j++) {
+                        const coherence = this.coherenceIndex[i][j];
+                        
+                        const intensity = Math.floor(255 * coherence);
+                        ctx.fillStyle = `rgb(0, ${intensity}, ${Math.floor(intensity * 0.5)})`;
+                        ctx.fillRect(i * cellWidth, j * cellHeight, cellWidth, cellHeight);
+                    }
+                }
+            }
+            
+            renderControlField() {
+                const ctx = this.contexts.control;
+                const canvas = this.canvases.control;
+                 const width = canvas.offsetWidth;
+                const height = canvas.offsetHeight;
+                
+                ctx.clearRect(0, 0, width, height);
+                
+                const cellWidth = width / this.gridSize;
+                const cellHeight = height / this.gridSize;
+                
+                let maxMag = -Infinity;
+                 for (let i = 0; i < this.gridSize; i++) {
+                    for (let j = 0; j < this.gridSize; j++) {
+                        maxMag = Math.max(maxMag, this.controlVector[i][j].magnitude);
+                    }
+                }
+
+                for (let i = 0; i < this.gridSize; i++) {
+                    for (let j = 0; j < this.gridSize; j++) {
+                        const magnitude = this.controlVector[i][j].magnitude;
+                        const normalized = Math.min(magnitude / (maxMag + 1e-10), 1);
+                        
+                        const intensity = Math.floor(255 * normalized);
+                        ctx.fillStyle = `rgb(${intensity}, 0, ${Math.floor(intensity * 0.7)})`;
+                        ctx.fillRect(i * cellWidth, j * cellHeight, cellWidth, cellHeight);
+                    }
+                }
+                
+                ctx.strokeStyle = '#ffffff';
+                ctx.lineWidth = 1;
+                const skip = 4; 
+                
+                for (let i = 0; i < this.gridSize; i += skip) {
+                    for (let j = 0; j < this.gridSize; j += skip) {
+                        const vector = this.controlVector[i][j];
+                        if (vector.magnitude > 0.01) {
+                            const x = (i + 0.5) * cellWidth;
+                            const y = (j + 0.5) * cellHeight;
+                            const scale = vector.magnitude * 500; // Scale arrow length by magnitude
+                            
+                            const angle = Math.atan2(vector.y, vector.x);
+                            const endX = x + Math.cos(angle) * scale;
+                            const endY = y + Math.sin(angle) * scale;
+                            
+                            ctx.beginPath();
+                            ctx.moveTo(x, y);
+                            ctx.lineTo(endX, endY);
+                            ctx.stroke();
+                        }
+                    }
+                }
+            }
+            
+            renderConvergence() {
+                const ctx = this.contexts.convergence;
+                const canvas = this.canvases.convergence;
+                const width = canvas.offsetWidth;
+                const height = canvas.offsetHeight;
+                
+                ctx.clearRect(0, 0, width, height);
+                
+                if (this.convergenceHistory.length < 2) return;
+                
+                // Draw axes and labels
+                const padding = 40;
+                ctx.strokeStyle = '#555';
+                ctx.fillStyle = '#aaa';
+                ctx.font = '10px Segoe UI';
+                ctx.lineWidth = 1;
+                ctx.beginPath();
+                ctx.moveTo(padding, padding);
+                ctx.lineTo(padding, height - padding);
+                ctx.lineTo(width - padding, height - padding);
+                ctx.stroke();
+                ctx.fillText('Time (min)', width / 2 - 20, height - 15);
+
+
+                // Plot Coherence
+                ctx.strokeStyle = '#4fc3f7';
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                const maxCoherence = 1.0;
+                this.convergenceHistory.forEach((point, index) => {
+                    const x = padding + (point.time / this.maxTime) * (width - 2 * padding);
+                    const y = (height - padding) - (point.coherence / maxCoherence) * (height - 2 * padding);
+                    if (index === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+                });
+                ctx.stroke();
+                
+                // Plot Gradient Norm
+                ctx.strokeStyle = '#ffa726';
+                ctx.lineWidth = 1;
+                ctx.beginPath();
+                const maxGradient = Math.max(...this.convergenceHistory.map(p => p.gradient)) + 1e-10;
+                 this.convergenceHistory.forEach((point, index) => {
+                    const x = padding + (point.time / this.maxTime) * (width - 2 * padding);
+                    const y = (height - padding) - (point.gradient / maxGradient) * (height - 2 * padding);
+                    if (index === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+                });
+                ctx.stroke();
+
+                // Mark TID introduction
+                if (this.currentTime >= 5.0) {
+                    const tidX = padding + (5.0 / this.maxTime) * (width - 2 * padding);
+                    ctx.strokeStyle = '#ef5350';
+                    ctx.setLineDash([4, 4]);
+                    ctx.beginPath();
+                    ctx.moveTo(tidX, padding);
+                    ctx.lineTo(tidX, height - padding);
+                    ctx.stroke();
+                    ctx.setLineDash([]);
+                    ctx.fillStyle = '#ef5350';
+                    ctx.fillText('TID', tidX + 5, padding + 10);
+                }
+            }
+            
+            renderMetrics() {
+                const ctx = this.contexts.metrics;
+                const canvas = this.canvases.metrics;
+                const width = canvas.offsetWidth;
+                const height = canvas.offsetHeight;
+                
+                ctx.clearRect(0, 0, width, height);
+                
+                if (this.metricsHistory.length < 2) return;
+                
+                const padding = 40;
+                
+                // Plot multiple metrics
+                const plotData = {
+                    avgCoherence: { color: '#4fc3f7', max: 1.0 },
+                    avgControl: { color: '#66bb6a', max: Math.max(...this.metricsHistory.map(h => h.avgControl)) + 1e-10 },
+                    activeResonances: { color: '#ffa726', max: this.resonanceOrders.length }
+                };
+                
+                for (const [metric, config] of Object.entries(plotData)) {
+                    ctx.strokeStyle = config.color;
+                    ctx.lineWidth = 2;
+                    ctx.beginPath();
+                    this.metricsHistory.forEach((point, index) => {
+                         const x = padding + ((point.time - this.metricsHistory[0].time) / (this.currentTime - this.metricsHistory[0].time)) * (width - 2 * padding);
+                         const y = (height - padding) - (point[metric] / config.max) * (height - 2 * padding);
+                         if (index === 0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
+                    });
+                    ctx.stroke();
+                }
+
+                // Legend
+                ctx.font = '12px Segoe UI';
+                ctx.fillStyle = plotData.avgCoherence.color;
+                ctx.fillText('Coherence', padding, 25);
+                ctx.fillStyle = plotData.avgControl.color;
+                ctx.fillText('Control', padding + 100, 25);
+                ctx.fillStyle = plotData.activeResonances.color;
+                ctx.fillText('Resonances', padding + 180, 25);
+            }
+            
+            addLog(message, type = 'info') {
+                const logPanel = document.getElementById('logPanel');
+                const entry = document.createElement('div');
+                entry.className = `log-entry log-${type}`;
+                entry.textContent = `[${this.currentTime.toFixed(2)}] ${message}`;
+                
+                logPanel.appendChild(entry);
+                logPanel.scrollTop = logPanel.scrollHeight;
+                
+                while (logPanel.children.length > 50) {
+                    logPanel.removeChild(logPanel.firstChild);
+                }
+            }
+            
+            exportData() {
+                const data = {
+                    simulationTime: this.currentTime,
+                    convergenceHistory: this.convergenceHistory,
+                    metricsHistory: this.metricsHistory,
+                    resonanceMapping: Object.fromEntries(this.cyclotronHarmonics),
+                    finalCoherence: this.getAverageCoherence(),
+                    finalControlMagnitude: this.getAverageControlMagnitude(),
+                    activeResonances: Array.from(this.activeResonances)
+                };
+                
+                const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `airc_simulation_${new Date().toISOString().slice(0, 19).replace(/:/g, '-')}.json`;
+                a.click();
+                URL.revokeObjectURL(url);
+                
+                this.addLog('Simulation data exported successfully', 'success');
+            }
+            
+            animate() {
+                this.update();
+                this.updateUI();
+                requestAnimationFrame(() => this.animate());
+            }
+        }
+        
+        document.addEventListener('DOMContentLoaded', () => {
+            new AIRCSimulation();
+        });
+    </script>
+</body>
+</html>
