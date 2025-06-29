@@ -9,10 +9,8 @@ An interactive, browser-based simulation of an Adaptive Ionospheric Resonance Co
 
 **➡️ [View the Live Demo](https://topherchris420.github.io/airc-simulation/) ⬅️**
 
-*(Replace the links above with your actual GitHub username and repository name)*
-
 ![AIRC Simulation Screenshot](https://i.imgur.com/rL4z1Qk.png)
-*(Pro-tip: Run the simulation, take a screenshot, and replace the image link above to show off your project!)*
+*(Feel free to run the simulation, take your own screenshot, and replace the image link above to show it off!)*
 
 ## About The Simulation
 
@@ -52,12 +50,12 @@ To run this project on your local machine:
 
 1.  **Clone the repository:**
     ```bash
-    git clone [https://github.com/YOUR-USERNAME/YOUR-REPO-NAME.git](https://github.com/YOUR-USERNAME/YOUR-REPO-NAME.git)
+    git clone [https://github.com/topherchris420/airc-simulation.git](https://github.com/topherchris420/airc-simulation.git)
     ```
 
 2.  **Navigate to the directory:**
     ```bash
-    cd YOUR-REPO-NAME
+    cd airc-simulation
     ```
 
 3.  **Open the file:**
