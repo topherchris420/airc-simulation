@@ -2,7 +2,7 @@
 
 An interactive, browser-based simulation of an Adaptive Ionospheric Resonance Control (AIRC) system designed to optimize plasma coherence against environmental disturbances.
 
-[![GitHub Pages Deploy](https://img.shields.io/github/deployments/YOUR-USERNAME/YOUR-REPO-NAME/github-pages?label=Live%20Demo&style=for-the-badge)](https://YOUR-USERNAME.github.io/YOUR-REPO-NAME/)
+[![GitHub Pages Deploy](https://img.shields.io/github/deployments/topherchris420/airc-simulation/github-pages?label=Live%20Demo&style=for-the-badge)](https://topherchris420.github.io/airc-simulation/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg?style=for-the-badge)](https://opensource.org/licenses/MIT)
 
 ---
